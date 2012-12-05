@@ -115,7 +115,7 @@
     };
 
     Grid.prototype.setData = function(data, redraw) {
-      var e, idx, index, maxGoal, minGoal, ret, row, total, ykey, ymax, ymin, yval;
+      var e, idx, index, maxGoal, minGoal, ret, row, total, ykey, ylabel, ymax, ymin, yval;
       if (redraw == null) {
         redraw = true;
       }
@@ -152,6 +152,12 @@
             for (idx = _j = 0, _len1 = _ref.length; _j < _len1; idx = ++_j) {
               ykey = _ref[idx];
               yval = row[ykey];
+              if (typeof yval === 'object' && (yval != null)) {
+                ylabel = yval.label;
+                yval = yval.value;
+              } else {
+                ylabel = null;
+              }
               if (typeof yval === 'string') {
                 yval = parseFloat(yval);
               }
@@ -174,7 +180,10 @@
                 ymax = Math.max(total, ymax);
                 ymin = Math.min(total, ymin);
               }
-              _results1.push(yval);
+              _results1.push(yval = {
+                value: yval,
+                label: ylabel
+              });
             }
             return _results1;
           }).call(this);
@@ -507,10 +516,10 @@
           _results1 = [];
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             y = _ref1[_j];
-            if (y != null) {
-              _results1.push(this.transY(y));
+            if (y.value != null) {
+              _results1.push(this.transY(y.value));
             } else {
-              _results1.push(y);
+              _results1.push(y.value);
             }
           }
           return _results1;
@@ -752,14 +761,18 @@
     };
 
     Line.prototype.updateHover = function(index) {
-      var i, l, maxLabelWidth, row, xloc, y, yloc, _i, _len, _ref;
+      var i, l, label, maxLabelWidth, row, xloc, y, yloc, _i, _len, _ref;
+      if (this.options.disableLegend) {
+        return;
+      }
       this.hoverSet.show();
       row = this.data[index];
       this.xLabel.attr('text', row.label);
       _ref = row.y;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         y = _ref[i];
-        this.yLabels[i].attr('text', "" + this.options.labels[i] + ": " + (this.yLabelFormat(y)));
+        label = y.label != null ? y.label : this.yLabelFormat(y.value);
+        this.yLabels[i].attr('text', "" + this.options.labels[i] + ": " + label);
       }
       maxLabelWidth = Math.max.apply(null, (function() {
         var _j, _len1, _ref1, _results;
@@ -1011,7 +1024,8 @@
           _results1 = [];
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             y = _ref1[_j];
-            total += y || 0;
+            y = y != null ? y.value : 0;
+            total += y;
             _results1.push(this.transY(total));
           }
           return _results1;
@@ -1118,8 +1132,8 @@
           _results1 = [];
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             y = _ref1[_j];
-            if (y != null) {
-              _results1.push(this.transY(y));
+            if (y.value != null) {
+              _results1.push(this.transY(y.value));
             } else {
               _results1.push(null);
             }
@@ -1236,7 +1250,10 @@
     };
 
     Bar.prototype.updateHover = function(index) {
-      var i, l, maxLabelWidth, row, xloc, y, yloc, _i, _len, _ref;
+      var i, l, label, maxLabelWidth, row, xloc, y, yloc, _i, _len, _ref;
+      if (this.options.disableLegend) {
+        return;
+      }
       this.hoverSet.show();
       row = this.data[index];
       this.xLabel.attr('text', row.label);
@@ -1244,7 +1261,8 @@
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         y = _ref[i];
         this.yLabels[i].attr('fill', this.colorFor(row, i, 'hover'));
-        this.yLabels[i].attr('text', "" + this.options.labels[i] + ": " + (this.yLabelFormat(y)));
+        label = y.label != null ? y.label : this.yLabelFormat(y.value);
+        this.yLabels[i].attr('text', "" + this.options.labels[i] + ": " + label);
       }
       maxLabelWidth = Math.max.apply(null, (function() {
         var _j, _len1, _ref1, _results;
